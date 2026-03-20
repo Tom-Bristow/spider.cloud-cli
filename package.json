@@ -1,0 +1,36 @@
+{
+  "name": "spider-cloud-cli",
+  "version": "0.1.0",
+  "description": "CLI and MCP server for the Spider Cloud API",
+  "author": "",
+  "license": "MIT",
+  "engines": { "node": ">=18.0.0" },
+  "type": "module",
+  "bin": {
+    "spider": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./mcp": "./dist/mcp.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "dev:mcp": "tsx src/mcp.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "commander": "^14.0.0",
+    "zod": "^3.24.0",
+    "@inquirer/prompts": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
