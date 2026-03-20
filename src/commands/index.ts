@@ -7,6 +7,7 @@ import { formatError } from '../core/errors.js';
 import { registerLoginCommand } from './auth/login.js';
 import { registerLogoutCommand } from './auth/logout.js';
 import { registerMcpCommand } from './mcp/index.js';
+import { registerWorkspaceCommands } from './workspace/index.js';
 import type { CommandDefinition, GlobalOptions } from '../core/types.js';
 
 import { crawlCommand } from './crawl/crawl.js';
@@ -33,6 +34,7 @@ export function registerAllCommands(program: Command): void {
   registerLoginCommand(program);
   registerLogoutCommand(program);
   registerMcpCommand(program);
+  registerWorkspaceCommands(program);
 
   const groups: Record<string, Command> = {};
 

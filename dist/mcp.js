@@ -5,7 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 // src/core/config.ts
-import { readFile, writeFile, rm, mkdir } from "fs/promises";
+import { readFile, writeFile, rm, mkdir, readdir } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 function getConfigDir() {

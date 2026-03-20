@@ -4,7 +4,7 @@
 import { Command } from "commander";
 
 // src/core/config.ts
-import { readFile, writeFile, rm, mkdir } from "fs/promises";
+import { readFile, writeFile, rm, mkdir, readdir } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 function getConfigDir() {
@@ -12,6 +12,12 @@ function getConfigDir() {
 }
 function getConfigPath() {
   return join(getConfigDir(), "config.json");
+}
+function getWorkspacesDir() {
+  return join(getConfigDir(), "workspaces");
+}
+function getWorkspacePath(name) {
+  return join(getWorkspacesDir(), `${name}.json`);
 }
 async function loadConfig() {
   try {
@@ -31,6 +37,32 @@ async function saveConfig(config) {
 async function deleteConfig() {
   try {
     await rm(getConfigPath());
+  } catch {
+  }
+}
+async function saveWorkspace(name, config) {
+  const dir = getWorkspacesDir();
+  await mkdir(dir, { recursive: true });
+  await writeFile(getWorkspacePath(name), JSON.stringify(config, null, 2), { mode: 384 });
+}
+async function switchWorkspace(name) {
+  const wsPath = getWorkspacePath(name);
+  const content = await readFile(wsPath, "utf-8");
+  const config = JSON.parse(content);
+  await saveConfig(config);
+  return config;
+}
+async function listWorkspaces() {
+  try {
+    const files = await readdir(getWorkspacesDir());
+    return files.filter((f) => f.endsWith(".json")).map((f) => f.replace(".json", ""));
+  } catch {
+    return [];
+  }
+}
+async function removeWorkspace(name) {
+  try {
+    await rm(getWorkspacePath(name));
   } catch {
   }
 }
@@ -354,6 +386,104 @@ async function startMcpServer() {
 function registerMcpCommand(program2) {
   program2.command("mcp").description("Start the MCP server for AI assistant integration").action(async () => {
     await startMcpServer();
+  });
+}
+
+// src/commands/workspace/index.ts
+function registerWorkspaceCommands(program2) {
+  const ws = program2.command("workspace").description("Manage multiple API key workspaces");
+  ws.command("add").description("Save a named workspace").argument("<name>", "Workspace name").option("--api-key <key>", "API key for this workspace").action(async (name, opts) => {
+    const globalOpts = program2.opts();
+    try {
+      let apiKey = opts.apiKey;
+      if (!apiKey) {
+        if (!process.stdin.isTTY) {
+          outputError(new Error("No API key provided. Use --api-key"), globalOpts);
+          return;
+        }
+        const { password } = await import("@inquirer/prompts");
+        apiKey = await password({
+          message: `Enter API key for workspace "${name}":`,
+          mask: "*"
+        });
+      }
+      if (!apiKey) {
+        outputError(new Error("No API key provided"), globalOpts);
+        return;
+      }
+      const client = new SpiderCloudClient({ apiKey });
+      if (process.stdin.isTTY) console.log("Validating API key...");
+      try {
+        await client.post("/crawl", { url: "https://example.com", limit: 1 });
+      } catch (err) {
+        if (err?.name === "AuthError") {
+          outputError(new Error("Invalid API key"), globalOpts);
+        } else {
+          outputError(err, globalOpts);
+        }
+        return;
+      }
+      await saveWorkspace(name, { api_key: apiKey });
+      if (process.stdin.isTTY) {
+        console.log(`
+Workspace "${name}" saved.`);
+      } else {
+        output({ status: "saved", workspace: name }, globalOpts);
+      }
+    } catch (error) {
+      outputError(error, globalOpts);
+    }
+  });
+  ws.command("switch").description("Switch to a named workspace").argument("<name>", "Workspace name").action(async (name) => {
+    const globalOpts = program2.opts();
+    try {
+      await switchWorkspace(name);
+      if (process.stdin.isTTY) {
+        console.log(`Switched to workspace "${name}".`);
+      } else {
+        output({ status: "switched", workspace: name }, globalOpts);
+      }
+    } catch (error) {
+      if (error?.code === "ENOENT") {
+        outputError(new Error(`Workspace "${name}" not found. Run: spider workspace list`), globalOpts);
+      } else {
+        outputError(error, globalOpts);
+      }
+    }
+  });
+  ws.command("list").description("List all saved workspaces").action(async () => {
+    const globalOpts = program2.opts();
+    try {
+      const workspaces = await listWorkspaces();
+      const current = await loadConfig();
+      if (process.stdin.isTTY) {
+        if (workspaces.length === 0) {
+          console.log("No workspaces saved. Run: spider workspace add <name>");
+        } else {
+          console.log("Workspaces:");
+          for (const name of workspaces) {
+            console.log(`  - ${name}`);
+          }
+        }
+      } else {
+        output({ workspaces }, globalOpts);
+      }
+    } catch (error) {
+      outputError(error, globalOpts);
+    }
+  });
+  ws.command("remove").description("Remove a saved workspace").argument("<name>", "Workspace name").action(async (name) => {
+    const globalOpts = program2.opts();
+    try {
+      await removeWorkspace(name);
+      if (process.stdin.isTTY) {
+        console.log(`Workspace "${name}" removed.`);
+      } else {
+        output({ status: "removed", workspace: name }, globalOpts);
+      }
+    } catch (error) {
+      outputError(error, globalOpts);
+    }
   });
 }
 
@@ -715,6 +845,7 @@ function registerAllCommands(program2) {
   registerLoginCommand(program2);
   registerLogoutCommand(program2);
   registerMcpCommand(program2);
+  registerWorkspaceCommands(program2);
   const groups = {};
   for (const cmdDef of allCommands) {
     if (!groups[cmdDef.group]) {
