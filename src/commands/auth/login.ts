@@ -45,7 +45,7 @@ export function registerLoginCommand(program: Command): void {
         }
 
         try {
-          await client.get('/v1/credits');
+          await client.post('/crawl', { url: 'https://example.com', limit: 1 });
         } catch {
           outputError(new Error('Invalid API key'), globalOpts);
           return;

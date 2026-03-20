@@ -24,7 +24,7 @@ export const transformCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/transform',
+    path: '/transform',
   },
 
   fieldMappings: {

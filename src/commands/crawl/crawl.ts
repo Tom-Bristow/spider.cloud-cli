@@ -38,7 +38,7 @@ export const crawlCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/crawl',
+    path: '/crawl',
   },
 
   fieldMappings: {

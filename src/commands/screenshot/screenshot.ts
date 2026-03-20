@@ -28,7 +28,7 @@ export const screenshotCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/screenshot',
+    path: '/screenshot',
   },
 
   fieldMappings: {

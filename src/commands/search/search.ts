@@ -30,7 +30,7 @@ export const searchCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/search',
+    path: '/search',
   },
 
   fieldMappings: {

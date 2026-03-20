@@ -1,4 +1,7 @@
+src/
 node_modules/
 *.map
 .env
 .spider-cloud/
+tsconfig.json
+tsup.config.ts

@@ -32,7 +32,7 @@ export const scrapeCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/scrape',
+    path: '/scrape',
   },
 
   fieldMappings: {

@@ -34,7 +34,7 @@ export const linksCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/links',
+    path: '/links',
   },
 
   fieldMappings: {

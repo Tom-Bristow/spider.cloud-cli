@@ -28,7 +28,7 @@ export const unblockerCommand: CommandDefinition = {
 
   endpoint: {
     method: 'POST',
-    path: '/v1/unblocker',
+    path: '/unblocker',
   },
 
   fieldMappings: {

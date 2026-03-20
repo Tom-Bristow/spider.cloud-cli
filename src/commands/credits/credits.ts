@@ -13,12 +13,12 @@ export const creditsCommand: CommandDefinition = {
 
   endpoint: {
     method: 'GET',
-    path: '/v1/credits',
+    path: '/credits',
   },
 
   fieldMappings: {},
 
   handler: async (_input, client) => {
-    return client.request({ method: 'GET', path: '/v1/credits' });
+    return client.request({ method: 'GET', path: '/credits' });
   },
 };
