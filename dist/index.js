@@ -260,8 +260,12 @@ function registerLoginCommand(program2) {
       }
       try {
         await client.post("/crawl", { url: "https://example.com", limit: 1 });
-      } catch {
-        outputError(new Error("Invalid API key"), globalOpts);
+      } catch (err) {
+        if (err?.name === "AuthError") {
+          outputError(new Error("Invalid API key"), globalOpts);
+        } else {
+          outputError(err, globalOpts);
+        }
         return;
       }
       await saveConfig({ api_key: apiKey });
